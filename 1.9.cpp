@@ -38,26 +38,34 @@ public:
 	int operator = (int);
 	double operator = (double);
 	char* operator = (const char*);
+	Buffer operator =(Buffer&);
+	friend ostream& operator<< (std::ostream& out, const Buffer& buf);
 };
 
 void main() 
 {
+	setlocale(LC_ALL, "rus");
 	Buffer buf = 3,buf2 = "pidor";
 	int intBuf;
 	double doubleBuf;
 	char* charBuf = nullptr;
-	charBuf = new char[255];
+	charBuf = new char[255];	
 	try
 	{
 	buf = 23;
+	cout<<"Инициализируем целого типа buf = " <<buf<<endl;
 	intBuf = buf;
-	cout << intBuf<<endl;
+	cout <<"Присваеваем intBuf = buf : "<< intBuf<<endl;
 	buf = 54.6;
+	cout << "Инициализируем с плавующей точкой buf = " << buf<<endl;
 	doubleBuf = buf;
-	cout << doubleBuf << endl;
+	cout << "Присваеваем doubleBuf = buf : "<< doubleBuf << endl;
 	buf = "Dolbaeb";
+	cout << "Инициализируем строку buf = " << buf << endl;
 	charBuf = buf;
-	cout << charBuf << endl;
+	cout << "Присваеваем charBuf* = buf : " << charBuf << endl;
+	buf2 = buf;
+	cout << buf2;
 	}
 	catch (MsgError & exception) {
 		std::cout << exception.GetDataState();
@@ -186,3 +194,58 @@ char* Buffer::operator=(const char*buf)
 	return strcpy(((char*)this->buf), buf);
 }
 
+Buffer Buffer::operator=(Buffer&buf)
+{
+	switch (idTipe)
+	{
+	case Buffer::intBuf:
+		if (this->buf != nullptr && (idTipe == intBuf || idTipe == doubleBuf))
+		{
+			delete[]this->buf;
+			this->buf = nullptr;
+		}
+		this->buf = (int*)this->buf;
+		this->buf = new int[1];
+		((int*)this->buf)[0] = buf;
+		idTipe = intBuf;
+		return ((int*)this->buf)[0];
+	case Buffer::doubleBuf:
+		if (this->buf != nullptr && (idTipe == intBuf || idTipe == doubleBuf))
+		{
+			delete[]this->buf;
+			this->buf = nullptr;
+		}
+		this->buf = (double*)this->buf;
+		this->buf = new double[1];
+		((double*)this->buf)[0] = buf;
+		idTipe = doubleBuf;
+		return ((double*)this->buf)[0];
+	case Buffer::charBuf:
+		if (this->buf != nullptr)
+		{
+			delete[]this->buf;
+			this->buf = nullptr;
+		}
+		this->buf = (char*)this->buf;
+		this->buf = new char[strlen(buf) + 2];
+		idTipe = charBuf;
+		return strcpy(((char*)this->buf), buf);
+		break;
+	}
+}
+
+ostream& operator<<(ostream& out, const Buffer& buf)
+{
+	switch (buf.idTipe)
+	{
+	case Buffer::intBuf:
+		out << ((int*)buf.buf)[0];
+		return out;
+	case Buffer::doubleBuf:
+		out << ((double*)buf.buf)[0];
+		return out;
+	case Buffer::charBuf:
+		out << (char*)buf.buf;
+		return out;
+	}
+}
